@@ -4,14 +4,14 @@
  */
 
 //import getAllEvents and buyTicket functions from clientModel.js
-const { getAllEvents, buyTicket } = require("../models/clientModel");
+import { getAllEvents, buyTicket } from "../models/clientModel.js";
 
 /**
  * GET /api/events
  * Returns a list of events.
  */
 //this is the function that responds to GET /api/events requests. The function will inject the req and res objects
-function listEvents(req, res) {
+export function listEvents(req, res) {
   getAllEvents((err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     //sends resulting rows array as a JSON
@@ -25,21 +25,26 @@ function listEvents(req, res) {
  */
 
 //this is the function that responds to POST /api/events/:id/buy-ticket requests. 
-function purchaseTicket(req, res) {
-    //extract eventID from URL (request expects an event identifier) and buyerID from request body (or default to 1)
+export function purchaseTicket(req, res) {
   const eventID = req.params.id;
-  //extract buyerID from request body or default to 1 if not provided (this is placeholder logic for now)
   const buyerID = req.body.buyerID || 1;
-//call buyTicket from model with eventID and buyerID
+
   buyTicket(eventID, buyerID, (err, result) => {
-    if (err) return res.status(400).json({ error: err.message });
-    res.json({
-      message: "Ticket purchased successfully",
+    if (err) {
+      // Always respond with consistent structure for tests
+      const status = err.status || 400;
+      const message = err.message || "Purchase failed";
+      return res.status(status).json({ message });
+    }
+
+    // Handle successful purchase or "sold out" fallback
+    const message =
+      result?.message ||
+      (result ? "Purchase successful" : "Sold out");
+
+    return res.status(200).json({
+      message,
       ...result,
     });
   });
 }
-//makes the listEvents and purchaseTicket functions available to other files so
-// when another file does a require("../controllers/clientController") it gets
-//object with listEvents and purchaseTicket functions and so router can attach to HTTP endpoints
-module.exports = { listEvents, purchaseTicket };

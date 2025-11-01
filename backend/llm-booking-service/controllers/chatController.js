@@ -5,20 +5,20 @@ import { parseIntent } from "../utils/intentParser.js";
 
 
 export const parseOnly = (req, res) => {
-  const { message } = req.body || {};
+  const message = req.body.message || req.body.text;  // allow both
   if (!message) return res.status(400).json({ error: "Message required" });
 
   const parsed = parseIntent(message);
   if (parsed.intent === "unknown") {
     return res.status(422).json({
       error: "Could not parse your request.",
-      example: { intent: "book", event: "Blues Night", tickets: 2 }
+      example: { intent: "book", event: "Blues Night", tickets: 2 },
     });
   }
   return res.json({
     intent: parsed.intent,
     event: parsed.event,
-    tickets: parsed.quantity
+    tickets: parsed.quantity,
   });
 };
 

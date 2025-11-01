@@ -3,9 +3,22 @@
  * @description  SQL logic for creating events and generating tickets
  */
 
-const sqlite3 = require("sqlite3").verbose(); //using verbose because we can get extra warnings 
-const db = new sqlite3.Database("../shared-db/database.sqlite");
+import sqlite3 from "sqlite3";
+import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
+const { verbose } = sqlite3;
+const dbLib = verbose();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const dbPath = path.resolve(__dirname, "../../shared-db/database.sqlite");
+const db = new dbLib.Database(dbPath, dbLib.OPEN_READWRITE, (err) => {
+  if (err) console.error("SQLite connection error:", err.message);
+  else console.log("Connected to shared SQLite database.");
+});
 /**
  * Inserts an event and auto-generates tickets using a default price if not provided.
  * @param {Object} event - Event details including title, description, start_time, end_time, address, num_tickets, organizerID, and optional ticket_price
@@ -14,7 +27,7 @@ const db = new sqlite3.Database("../shared-db/database.sqlite");
  * @param {number} [event.ticket_price=50.0] - Optional ticket price, defaults to 50.0 if not provided.
  */
 
-function createEvent(event, callback) {
+export function createEvent(event, callback) {
   const { title, description, start_time, end_time, address, num_tickets, organizerID, ticket_price = 50.0 } = event;
   //insert event into Events table using positional placeholders for title, description, start_time, end_time, address, num_tickets, organizerID
   const query = `INSERT INTO Events (title, description, start_time, end_time, address, num_tickets, organizerID)
@@ -42,4 +55,3 @@ function createEvent(event, callback) {
   });
 }
 
-module.exports = { createEvent };

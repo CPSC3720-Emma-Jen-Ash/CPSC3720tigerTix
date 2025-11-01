@@ -8,7 +8,7 @@
 imports createEvent from adminModel.js so every time there are insertions to database and ticket gen. this goes through
 model function and contorller never actually touches the database directly
 */
-const { createEvent } = require("../models/adminModel");
+import { createEvent } from "../models/adminModel.js";
 
 /**
  * POST /api/admin/events
@@ -24,7 +24,7 @@ const { createEvent } = require("../models/adminModel");
 addEvent is the controller function that handles the POST request to create a new event and express will inject
 the req and res objects when this function is called
 */
-function addEvent(req, res) {
+export function addEvent(req, res) {
   const { title, num_tickets } = req.body;
   //basic validation that title and num_tickets are provided and num_tickets is a positive integer
   if (!title || !num_tickets || num_tickets <= 0)
@@ -45,4 +45,3 @@ function addEvent(req, res) {
 }
 //makes the addEvent function available to other files so when another file does a require("../controllers/adminController")
 //it can access the addEvent function from the import object
-module.exports = { addEvent };

@@ -3,12 +3,18 @@
   "version": "1.0.0",
   "description": "Clemson TigerTix ticket management system",
   "main": "TigerTix.js",
+  "type": "module",
   "scripts": {
-    "start": "node TigerTix.js"
+    "start": "node TigerTix.js",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand"
   },
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.1.4"
   }
 }

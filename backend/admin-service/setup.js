@@ -3,11 +3,22 @@
  * @description Initializes database schema if not already created
  */
 
-const sqlite3 = require("sqlite3").verbose();
+import sqlite3 from "sqlite3";
+import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+const { verbose } = sqlite3;
+const dbLib = verbose();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const dbPath = path.resolve(__dirname, "../../shared-db/database.sqlite");
+
 
 //this is the function called from server.js to setup the database tables if they don't already exist
-function initDatabase() {
-  const db = new sqlite3.Database("../shared-db/database.sqlite");
+export function initDatabase() {
+    const db = new dbLib.Database(dbPath);
 
   // Create Events, Tickets, and Transactions tables if they don't exist
   db.serialize(() => {
@@ -45,4 +56,3 @@ function initDatabase() {
   db.close();
 }
 
-module.exports = { initDatabase };

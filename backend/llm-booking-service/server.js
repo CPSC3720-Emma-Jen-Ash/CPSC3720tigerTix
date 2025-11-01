@@ -6,11 +6,11 @@ const app = express();
 app.use(bodyParser.json());
 app.use("/api", chatRoutes);
 
-export default app;
 
 if (process.env.NODE_ENV !== "test") {
-  const PORT = 7001;
-  app.listen(PORT, () =>
-    console.log(`LLM Booking Service running on port ${PORT}`)
-  );
+  app.listen(PORT, () => {
+    console.log(`Client Service running on http://localhost:${PORT}`);
+  });
 }
+
+export default app;

@@ -2,9 +2,9 @@
  * @file server.js (Client Service)
  * @description Handles viewing events and buying tickets
  */
-const express = require("express");
-const cors = require("cors");
-const clientRoutes = require("./routes/clientRoutes");
+import express from "express";
+import cors from "cors";
+import clientRoutes from "./routes/clientRoutes.js";
 
 // Create Express app and define PORT 6001
 const app = express();
@@ -15,6 +15,10 @@ app.use(cors());
 app.use(express.json());
 app.use("/api", clientRoutes);
 
-app.listen(PORT, () => {
-  console.log(`Client Service running on http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== "test") {
+  app.listen(PORT, () => {
+    console.log(`Client Service running on http://localhost:${PORT}`);
+  });
+}
+
+export default app;

@@ -5,11 +5,10 @@
  */
 
 //dependencies express for server, cors for cross-origin requests
-const express = require("express");
-const cors = require("cors");
-const adminRoutes = require("./routes/adminRoutes");
-//import initDatabase function to setup db tables if they don't exist
-const { initDatabase } = require("./setup");
+import express from "express";
+import cors from "cors";
+import adminRoutes from "./routes/adminRoutes.js";
+import { initDatabase } from "./setup.js";
 
 const app = express();
 const PORT = 5001;
@@ -29,3 +28,4 @@ app.use("/api/admin", adminRoutes);
 app.listen(PORT, () => {
   console.log(`Admin Service running on http://localhost:${PORT}`);
 });
+export default app;

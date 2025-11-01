@@ -5,8 +5,10 @@
  * It interacts directly with the shared SQLite database used by both services.
  */
 
-const path = require("path");
-const sqlite3 = require("sqlite3").verbose();
+import path from "path";
+import sqlite3 from "sqlite3";
+const { verbose } = sqlite3;
+const dbLib = verbose();
 
 /**
  * Establishes a persistent connection to the shared SQLite database.
@@ -14,13 +16,21 @@ const sqlite3 = require("sqlite3").verbose();
  * both the admin-service and client-service always access the same DB,
  * regardless of where `node` is started from.
  */
+import { fileURLToPath } from "url"; // required for __dirname equivalent in ESM
+import { dirname } from "path";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 const dbPath = path.resolve(__dirname, "../../shared-db/database.sqlite");
 console.log("Connecting to SQLite DB at:", dbPath);
 
-const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE, (err) => {
+const db = new dbLib.Database(dbPath, dbLib.OPEN_READWRITE, (err) => {
   if (err) console.error("SQLite connection error:", err.message);
   else console.log("Connected to shared SQLite database.");
 });
+
+// Set busy timeout to handle concurrent  access
+db.configure("busyTimeout", 2000);
 
 /**
  * Retrieves all events stored in the Events table.
@@ -35,7 +45,7 @@ const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE, (err) => {
  * GET request. It allows the frontend to display the list of all active or available events.
  * 
  */
-function getAllEvents(callback) {
+export function getAllEvents(callback) {
   db.all("SELECT * FROM Events", [], callback);
 }
 
@@ -67,42 +77,66 @@ function getAllEvents(callback) {
  *    If successful, the callback returns the purchased ticket’s ID and seat number.
  */
 
-function buyTicket(eventID, buyerID, callback) {
-  db.get(
-    "SELECT * FROM Tickets WHERE eventID = ? AND status = 'available' ORDER BY seat_number LIMIT 1",
-    [eventID],
-    (err, ticket) => {
-      if (err) return callback(err);
-      if (!ticket) return callback({ message: "No available tickets" });
+export function buyTicket(eventID, buyerID, callback) {
+  db.serialize(() => {
+    db.run("BEGIN TRANSACTION", (beginErr) => {
+      if (beginErr) {
+        if (beginErr.code === "SQLITE_BUSY" || beginErr.code === "SQLITE_LOCKED") {
+          const busyErr = new Error("Sold out");
+          busyErr.status = 400;
+          return callback(busyErr);
+        }
+        return callback(beginErr);
+      }
 
-      const purchase_time = new Date().toISOString();
+      db.get(
+        "SELECT * FROM Tickets WHERE eventID = ? AND status = 'available' ORDER BY seat_number LIMIT 1",
+        [eventID],
+        (err, ticket) => {
+          if (err) {
+            db.run("ROLLBACK");
+            return callback(err);
+          }
 
-      db.run(
-        "UPDATE Tickets SET buyerID = ?, status = 'sold', purchase_time = ? WHERE ticketID = ?",
-        [buyerID, purchase_time, ticket.ticketID],
-        (updateErr) => {
-          if (updateErr) return callback(updateErr);
+          if (!ticket) {
+            db.run("COMMIT");
+            const soldOutErr = new Error("Sold out");
+            soldOutErr.status = 400;
+            return callback(soldOutErr);
+          }
 
-          // Reflect the purchase in the Events table to keep ticket count accurate
+          const purchase_time = new Date().toISOString();
+
           db.run(
-            "UPDATE Events SET num_tickets = num_tickets - 1 WHERE eventID = ?",
-            [eventID]
-          );
+            "UPDATE Tickets SET buyerID = ?, status = 'sold', purchase_time = ? WHERE ticketID = ?",
+            [buyerID, purchase_time, ticket.ticketID],
+            (updateErr) => {
+              if (updateErr) {
+                db.run("ROLLBACK");
+                return callback(updateErr);
+              }
 
-          // Return confirmation to  controller
-          callback(null, {
-            ticketID: ticket.ticketID,
-            seat_number: ticket.seat_number,
-            message: "Purchase successful",
-          });
+              db.run(
+                "UPDATE Events SET num_tickets = num_tickets - 1 WHERE eventID = ?",
+                [eventID],
+                (updateEventErr) => {
+                  if (updateEventErr) {
+                    db.run("ROLLBACK");
+                    return callback(updateEventErr);
+                  }
+
+                  db.run("COMMIT");
+                  callback(null, {
+                    ticketID: ticket.ticketID,
+                    seat_number: ticket.seat_number,
+                    message: "Purchase successful",
+                  });
+                }
+              );
+            }
+          );
         }
       );
-    }
-  );
+    });
+  });
 }
-
-/**
- * Exports the database operations for the Client Controller 
- * keeping Input output logic separate from request handling
- */
-module.exports = { getAllEvents, buyTicket };

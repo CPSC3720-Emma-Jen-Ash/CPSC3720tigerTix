@@ -1,1 +1,19 @@
-backend/shared-db/database.sqlite
+# Ignore database files
+*.sqlite
+*.db
+backend/shared-db/
+
+# Node dependencies
+node_modules/
+
+# Python cache (for any node-gyp or build scripts)
+__pycache__/
+*.pyc
+
+# Test temp files
+*.skip
+*.test.skip
+
+# Logs and OS cruft
+npm-debug.log*
+.DS_Store
