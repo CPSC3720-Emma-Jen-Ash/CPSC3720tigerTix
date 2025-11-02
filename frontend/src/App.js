@@ -1,175 +1,236 @@
 // App.js
 // React frontend for TigerTix: the client-facing interface of the system.
-// This React component connects to the Client Microservice(port 6001),
-// which provides event data and handles ticket purchases.
-// The Admin Microservice (port 5001) is used only for event creation and
-// management — the frontend never interacts with it directly.
-//
-// Architecture overview:
-//   Admin Service (5001): creates/updates events, populates database
-//   Client Service (6001): serves event listings & ticket purchases
-//   Frontend (3000): displays events and provides accessible purchase UI
-//
-// The React app retrieves event data via REST API calls to
-//   http://localhost:6001/api/events
-// and sends POST requests to purchase tickets.
-
-//import useEffect and useState for react
-//import app.css for local styling
 import React, { useEffect, useState } from "react";
 import "./App.css";
 
 function App() {
-
-  // STATE VARIABLES
-
-  // events holds the array of events retrieved from the backend
+  // STATE: events + loading + purchase message (existing behavior)
   const [events, setEvents] = useState([]);
-  // loading indicates whether data is still being fetched from the API
   const [loading, setLoading] = useState(true);
-  // 'message' displays purchase or error feedback to the user
   const [message, setMessage] = useState("");
 
-  // Define the base URL for the backend API.
-  // This points to the Client Microservice on port 6001.
-  const BASE_URL = "http://localhost:6001/api/events";
+  // Chat/voice state
+  const [messages, setMessages] = useState([]); // {role: 'user'|'assistant', text}
+  const [isRecording, setIsRecording] = useState(false);
 
+  // Backend URLs
+  const BASE_URL = "http://localhost:6001/api/events"; // client service
+  // LLM booking service - adjust port if your llm service runs elsewhere
+  const LLM_URL = "http://localhost:7001/api/chat";
 
-  // FETCH EVENTS FROM BACKEND
-
-  /* This useEffect() block automatically retrieves event data from the
-  backend Client Microservice (running on port 6001) as soon as the react component first loads,
-  replacing any hardcoded data with live data stored in the shared SQLite database.
-  This ensures that users see the most up-to-date event information.
-  useEffect runs only once after the initial render because of the
-  empty dependency array [].
-  The fetch() function is a browser API that sends an HTTP GET request
-  to the URL defined in BASE_URL
-  */
+  // Fetch events (unchanged)
   useEffect(() => {
     fetch(BASE_URL)
-    //Once the server responds, .then((res) => res.json()) converts the
-   //response body from raw JSON text into a usable JavaScript object.
-
-      .then((res) => res.json()) // Parse the JSON response body
+      .then((res) => res.json())
       .then((data) => {
-        // Calls setEvents(data), updates the React state variable
-        // "events" so that the frontend can re-render and display the retrieved events on screen.
         setEvents(data);
-        // Indicate that loading is complete
         setLoading(false);
       })
       .catch((err) => {
-        // Log the error if the fetch fails 
         console.error("Error fetching events:", err);
         setLoading(false);
       });
-  }, []); // Empty dependency array ensures this runs only once
+  }, []);
 
-
-
-
-  // HANDLE TICKET PURCHASE
-
-  // Sends a POST request to the backend to simulate purchasing a ticket.
-  // Takes the event ID as an argument.
+  // Purchase handler (unchanged behavior)
   const handlePurchase = async (eventID) => {
-    // Clear any existing messages before starting a new purchase
     setMessage("");
-
     try {
-      // Construct the URL for the "buy ticket" endpoint, basically builds a POST request
       const response = await fetch(`${BASE_URL}/${eventID}/buy-ticket`, {
-        method: "POST", // Use POST because this action modifies data
-        headers: { "Content-Type": "application/json" }, // Inform server we’re sending JSON
-        body: JSON.stringify({ buyerID: 1 }) // Example buyer ID (could be dynamic later)
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ buyerID: 1 }),
       });
 
-      // If the purchase is successful (HTTP 200 OK or 201 Created) update UI
       if (response.ok) {
         setMessage("Ticket purchased successfully.");
-
-        // After buying, retrieve updated event data from backend
-        // so the UI reflects the reduced ticket count.
         const refreshed = await fetch(BASE_URL).then((r) => r.json());
         setEvents(refreshed);
-      } 
-      // If the server returns an error response (e.g., 404 or 500)
-      else {
+      } else {
         setMessage("Purchase failed. Please try again.");
       }
     } catch (err) {
-      // Catch any network or runtime errors ( backend not running)
       console.error("Network error while purchasing:", err);
       setMessage("Unable to complete purchase — server not reachable.");
     }
   };
 
+  // UTILS: text-to-speech (SpeechSynthesis)
+  const speak = (text) => {
+    if (!window.speechSynthesis) return; // not supported
+    const utter = new SpeechSynthesisUtterance(text);
+    // Accessibility: slow down slightly for clarity
+    utter.rate = 0.95;
+    utter.pitch = 1.0;
+    // Choose a clear voice if available
+    const voices = window.speechSynthesis.getVoices();
+    if (voices && voices.length) {
+      const en = voices.find((v) => /en(-|_)?/i.test(v.lang)) || voices[0];
+      if (en) utter.voice = en;
+    }
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utter);
+  };
 
-  // RENDER LOGIC
+  // Send message text to LLM booking service and handle reply
+  const sendMessageToLLM = async (text) => {
+    // Append user message locally
+    setMessages((m) => [...m, { role: "user", text }] );
 
-  // While event data is still loading, display a temporary message so that the UI
-  // doesn't appear blank or broken.
+    try {
+      const res = await fetch(LLM_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
+      });
+      const data = await res.json();
+      const reply = data.reply || "(no reply)";
+      // Append assistant reply to chat
+      setMessages((m) => [...m, { role: "assistant", text: reply }]);
+      // Speak the reply aloud
+      speak(reply);
+    } catch (err) {
+      console.error("LLM request failed:", err);
+      const errMsg = "Unable to reach LLM service.";
+      setMessages((m) => [...m, { role: "assistant", text: errMsg }]);
+      speak(errMsg);
+    }
+  };
+
+  // Play a short beep (WebAudio) before starting recording
+  const playBeep = () => {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AudioCtx();
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = "sine";
+      o.frequency.value = 1000;
+      o.connect(g);
+      g.connect(ctx.destination);
+      g.gain.setValueAtTime(0.0001, ctx.currentTime);
+      o.start();
+      g.gain.exponentialRampToValueAtTime(0.5, ctx.currentTime + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.22);
+      setTimeout(() => {
+        o.stop();
+        if (ctx.close) ctx.close();
+      }, 300);
+    } catch (e) {
+      // ignore if audio not available
+    }
+  };
+
+  // Speech recognition flow (Web Speech API)
+  const startRecognition = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      const errMsg = "Speech recognition not supported in this browser.";
+      setMessages((m) => [...m, { role: "assistant", text: errMsg }]);
+      speak(errMsg);
+      return;
+    }
+
+    playBeep();
+    const recog = new SpeechRecognition();
+    recog.lang = "en-US";
+    recog.interimResults = false;
+    recog.maxAlternatives = 1;
+
+    recog.onstart = () => {
+      setIsRecording(true);
+    };
+
+    recog.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      // Display recognized text in chat BEFORE sending by letting sendMessageToLLM append it
+      sendMessageToLLM(transcript);
+    };
+
+    recog.onerror = (e) => {
+      console.error("Speech recognition error", e);
+      setMessages((m) => [...m, { role: "assistant", text: "Sorry, I couldn't hear that." }]);
+      setIsRecording(false);
+    };
+
+    recog.onend = () => {
+      setIsRecording(false);
+    };
+
+    // Start recognition shortly after beep so beep doesn't get picked up
+    setTimeout(() => {
+      try {
+        recog.start();
+      } catch (e) {
+        // Some browsers throw if start called twice
+      }
+    }, 250);
+  };
+
+  // Render
   if (loading) {
     return <p>Loading event data...</p>;
   }
 
-  // Main JSX (React HTML syntax)
-  // This section handles both layout and accessibility considerations
-
-  //returns a main wrapper 
   return (
     <main className="App">
-      {/* APP Title */}
       <h1 id="page-title">TigerTix Events</h1>
 
-      {/* 
-        Accessible alert region that announces changes to assistive technologies.
-        aria-live="polite" tells screen readers to announce changes
-        without interrupting the user mid-sentence
-      */}
       {message && (
         <div role="alert" aria-live="polite" className="status-message">
           {message}
         </div>
       )}
 
-      {/* 
-        List of events retrieved from the backend.
-        Each event displays title, date, available tickets, and a Buy button.
-        aria-label helps screen readers describe the purpose of the list
+      <section aria-label="Available events">
+        <ul aria-label="List of available events">
+          {events.length === 0 ? (
+            <p>No events available at this time.</p>
+          ) : (
+            events.map((event) => (
+              <li key={event.eventID} className="event-card">
+                <h2>{event.title}</h2>
+                <p>Date: {event.start_time || "To be announced"}</p>
+                <p>Tickets Available: {event.num_tickets}</p>
+                <button
+                  onClick={() => handlePurchase(event.eventID)}
+                  aria-label={`Buy ticket for ${event.title}`}
+                >
+                  Buy Ticket
+                </button>
+              </li>
+            ))
+          )}
+        </ul>
+      </section>
 
-      */}
-      <ul aria-label="List of available events">
-        {events.length === 0 ? (
-          <p>No events available at this time.</p>
-        ) : (
-          events.map((event) => (
-            <li key={event.eventID} className="event-card">
-              {/* Event title */}
-              <h2>{event.title}</h2>
+      {/* Chat / Voice Section */}
+      <section aria-label="Voice chat" className="chat-section">
+        <h2>Voice Assistant</h2>
+        <div className="chat-window" aria-live="polite">
+          {messages.length === 0 && <p className="muted">Tap the microphone and speak a request (for accessibility, try: "show events" or "book 2 tickets for Jazz Night").</p>}
+          {messages.map((m, i) => (
+            <div key={i} className={`chat-msg ${m.role}`}>
+              <strong className="role">{m.role === 'user' ? 'You' : 'Assistant'}: </strong>
+              <span>{m.text}</span>
+            </div>
+          ))}
+        </div>
 
-              {/* Event details */}
-              <p>Date: {event.start_time || "To be announced"}</p>
-              <p>Tickets Available: {event.num_tickets}</p>
-
-              {/* 
-                Purchase button: 
-                Calls handlePurchase() when clicked, passing the event ID.
-                aria-label provides a full description for users with screen readers.
-              */}
-              <button
-                onClick={() => handlePurchase(event.eventID)}
-                aria-label={`Buy ticket for ${event.title}`}
-              >
-                Buy Ticket
-              </button>
-            </li>
-          ))
-        )}
-      </ul>
+        <div className="chat-controls">
+          <button
+            onClick={startRecognition}
+            aria-pressed={isRecording}
+            aria-label={isRecording ? "Recording" : "Start voice input"}
+            className={`mic-button ${isRecording ? 'recording' : ''}`}
+          >
+            {isRecording ? 'Recording...' : '🎤 Speak'}
+          </button>
+          <p className="muted">Responses will be spoken aloud; no tickets are booked automatically.</p>
+        </div>
+      </section>
     </main>
   );
 }
-// exports the App component as the default so that it is the entry point when imported
+
 export default App;

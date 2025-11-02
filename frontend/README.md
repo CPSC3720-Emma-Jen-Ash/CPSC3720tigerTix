@@ -68,3 +68,15 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+## Voice Assistant (accessibility)
+
+This app includes a simple voice assistant for visually-impaired users.
+
+- Tap the "🎤 Speak" button in the Voice Assistant section of the app.
+- The app plays a short beep, records a spoken request (Web Speech API), displays the transcribed text in the chat window, and sends it to the local LLM booking service at `http://localhost:7001/api/chat`.
+- The assistant speaks responses using the browser Speech Synthesis API and will propose bookings but will not automatically purchase tickets. To complete a booking you must explicitly confirm using the assistant (e.g., say "yes book Jazz Night").
+
+Notes:
+- Chrome (desktop) and recent Chromium-based browsers support the required Web Speech APIs. Mobile behavior varies by platform.
+- If speech recognition is not supported, the UI will notify you and fallback to text-only behaviour.

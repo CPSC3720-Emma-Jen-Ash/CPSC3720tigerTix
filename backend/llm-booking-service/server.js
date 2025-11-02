@@ -6,10 +6,12 @@ const app = express();
 app.use(bodyParser.json());
 app.use("/api", chatRoutes);
 
+// Ensure a default port for the LLM booking service
+const PORT = process.env.PORT || 7001;
 
 if (process.env.NODE_ENV !== "test") {
   app.listen(PORT, () => {
-    console.log(`Client Service running on http://localhost:${PORT}`);
+    console.log(`LLM Booking Service running on http://localhost:${PORT}`);
   });
 }
 
