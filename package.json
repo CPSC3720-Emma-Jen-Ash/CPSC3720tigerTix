@@ -4,10 +4,10 @@
   "description": "Clemson TigerTix ticket management system",
   "main": "TigerTix.js",
   "type": "module",
-"scripts": {
-  "start": "cd frontend && npm start",
-  "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand"
-},
+  "scripts": {
+    "start": "cd frontend && npm start",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand"
+  },
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.21.2",

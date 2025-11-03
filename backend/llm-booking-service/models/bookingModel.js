@@ -61,7 +61,10 @@ const __dirname = path.dirname(__filename)
 // build full absolute path to shared database file
 // using path.join so that slashes and spaces work on any op system
 // .. goes up 2 levels from models folder to shared-db folder
-const dbPath = path.join(__dirname, "..", "..", "shared-db", "database.sqlite")
+const localBase = process.env.LOCALAPPDATA || path.join(__dirname, '..', '..', 'shared-db');
+const dbDir = path.resolve(localBase, 'TigerTix');
+try { if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true }); } catch (e) { /* best effort */ }
+const dbPath = path.join(dbDir, 'database.sqlite')
 
 
 if (!usingMock) {

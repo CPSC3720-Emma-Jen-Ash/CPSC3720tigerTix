@@ -27,7 +27,11 @@ if (process.env.NODE_ENV === 'test') {
   const { initDatabase } = await import('../../admin-service/setup.js');
   await initDatabase();
 
-  const dbPath = path.resolve(__dirname, '../../shared-db/database.sqlite');
+  // Use the same LOCALAPPDATA location as admin-service so all services share the same DB
+  const localBase = process.env.LOCALAPPDATA || path.resolve(__dirname, '../../shared-db');
+  const dbDir = path.resolve(localBase, 'TigerTix');
+  try { const fs = await import('fs'); if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true }); } catch (e) { /* best-effort */ }
+  const dbPath = path.resolve(dbDir, 'database.sqlite');
   console.log('connecting to sqlite db at:', dbPath);
 
   const db = new dbLib.Database(dbPath, dbLib.OPEN_READWRITE, (err) => {
@@ -40,7 +44,7 @@ if (process.env.NODE_ENV === 'test') {
   getAllEvents = function (callback) {
     db.all('SELECT * FROM Events', [], callback);
   };
-
+  console.log("Resolved absolute DB path:", dbPath);
   buyTicket = function (eventID, buyerID, callback) {
     db.serialize(() => {
       db.run('BEGIN TRANSACTION', (beginErr) => {
