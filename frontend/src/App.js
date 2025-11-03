@@ -16,7 +16,7 @@ function App() {
   // Backend URLs
   const BASE_URL = "http://localhost:6001/api/events"; // client service
   // LLM booking service - adjust port if your llm service runs elsewhere
-  const LLM_URL = "http://localhost:7001/api/llm/chat";
+  const LLM_URL = "http://localhost:7001/api/chat";
 
   // Fetch events (unchanged)
   useEffect(() => {

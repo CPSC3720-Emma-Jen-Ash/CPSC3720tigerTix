@@ -1,7 +1,8 @@
-# Ignore database files
-*.sqlite
+# Ignore developer-local or temporary DBs,
+# but keep the shared one in version control 
 *.db
-
+!backend/shared-db/database.sqlite
+!backend/shared-db/init.sql
 
 # Node dependencies
 node_modules/
