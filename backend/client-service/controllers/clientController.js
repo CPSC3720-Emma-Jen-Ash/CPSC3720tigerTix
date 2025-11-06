@@ -36,8 +36,28 @@ export function purchaseTicket(req, res) {
   // ex /api/events/1/purchase → id=1
   const eventID = req.params.id
 
-  // buyer id comes from req body or default 1 for guest
-  const buyerID = req.body.buyerID || 1
+  // Determine buyerID:
+  // - In normal (non-test) mode, derive buyerID from authenticated token (req.user.sub) provided by requireAuth.
+  // - In test mode, accept buyerID from the request body or default to 1.
+  let buyerID;
+  if (process.env.NODE_ENV === 'test') {
+    buyerID = req.body.buyerID || 1;
+  } else {
+    // requireAuth middleware should have populated req.user
+    // Debug: log incoming auth info to help diagnose missing token/cookie in dev
+    console.log('Purchase request:', {
+      eventID,
+      headers: req.headers && Object.keys(req.headers).length ? '[headers present]' : '[no headers]',
+      cookies: req.cookies || {},
+      user: req.user || null,
+    });
+
+    if (!req.user || !req.user.sub) {
+      console.warn('purchase rejected: no authenticated user on request');
+      return res.status(401).json({ message: 'not authenticated' });
+    }
+    buyerID = req.user.sub;
+  }
 
   // call model fxn buyTicket(eventID, buyerID)
   // this one actually updates db and returns result

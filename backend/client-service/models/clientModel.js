@@ -42,7 +42,21 @@ if (process.env.NODE_ENV === 'test') {
   db.configure('busyTimeout', 2000);
 
   getAllEvents = function (callback) {
-    db.all('SELECT * FROM Events', [], callback);
+    // Return events with a computed `num_tickets` equal to the count of available tickets
+    // This prevents UI showing stale `Events.num_tickets` values that are out-of-sync
+    // with the actual Tickets.status rows.
+    const sql = `
+      SELECT e.eventID, e.title, e.start_time,
+             COALESCE(t.available, 0) AS num_tickets
+      FROM Events e
+      LEFT JOIN (
+        SELECT eventID, COUNT(*) AS available
+        FROM Tickets
+        WHERE status = 'available'
+        GROUP BY eventID
+      ) t ON e.eventID = t.eventID
+    `;
+    db.all(sql, [], callback);
   };
   console.log("Resolved absolute DB path:", dbPath);
   buyTicket = function (eventID, buyerID, callback) {

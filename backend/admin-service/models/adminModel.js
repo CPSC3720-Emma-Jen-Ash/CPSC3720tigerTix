@@ -15,12 +15,18 @@ if (process.env.NODE_ENV === "test") {
 } else {
   const sqlite3 = (await import("sqlite3")).default;
   const path = (await import("path")).default;
+  const fs = (await import('fs')).default;
   const { verbose } = sqlite3;
   const dbLib = verbose();
-  const dbPath = path.resolve(__dirname, "../../shared-db/database.sqlite");
-  const db = new dbLib.Database(dbPath, dbLib.OPEN_READWRITE, (err) => {
+
+  // Use the same LOCALAPPDATA/TigerTix location as setup.js to avoid OneDrive placeholder issues
+  const localBase = process.env.LOCALAPPDATA || path.resolve(__dirname, '../../shared-db');
+  const dbDir = path.resolve(localBase, 'TigerTix');
+  try { if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true }); } catch (e) { /* best-effort */ }
+  const dbPath = path.join(dbDir, 'database.sqlite');
+  const db = new dbLib.Database(dbPath, dbLib.OPEN_READWRITE | dbLib.OPEN_CREATE, (err) => {
     if (err) console.error("SQLite connection error:", err.message);
-    else console.log("Connected to shared SQLite database.");
+    else console.log("Connected to shared SQLite database at:", dbPath);
   });
 
   createEvent = function (event, callback) {

@@ -53,18 +53,27 @@ function App() {
   const handlePurchase = async (eventID) => {
     setMessage("");
     try {
+      // Use authenticated user's id when available; fall back to guest id=1
+      const buyerID = currentUser?.id || 1;
       const response = await fetch(`${BASE_URL}/${eventID}/purchase`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ buyerID: 1 }),
+        credentials: 'include',
+        body: JSON.stringify({ buyerID }),
       });
+
+      // Read response body to present better error info
+      let respBody = {};
+      try { respBody = await response.json(); } catch (e) {}
 
       if (response.ok) {
         setMessage("Ticket purchased successfully.");
         const refreshed = await fetch(BASE_URL).then((r) => r.json());
         setEvents(refreshed);
+      } else if (response.status === 401) {
+        setMessage(respBody.message || "Not authenticated — please log in.");
       } else {
-        setMessage("Purchase failed. Please try again.");
+        setMessage(respBody.message || `Purchase failed (status ${response.status}). Please try again.`);
       }
     } catch (err) {
       console.error("Network error while purchasing:", err);
