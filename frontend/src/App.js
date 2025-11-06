@@ -13,12 +13,18 @@ function App() {
   const [messages, setMessages] = useState([]); // {role: 'user'|'assistant', text}
   const [isRecording, setIsRecording] = useState(false);
 
+  // Auth state
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authMode, setAuthMode] = useState(null); // 'login' | 'register' | null
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+
   // Backend URLs
   const BASE_URL = "http://localhost:6001/api/events"; // client service
   // LLM booking service - adjust port if your llm service runs elsewhere
   const LLM_URL = "http://localhost:7001/api/chat";
 
-  // Fetch events (unchanged)
+  // Fetch events (unchanged) and current user
   useEffect(() => {
     fetch(BASE_URL)
       .then((res) => res.json())
@@ -30,6 +36,17 @@ function App() {
         console.error("Error fetching events:", err);
         setLoading(false);
       });
+
+    // Try to read current user from auth service (cookie-based)
+    fetch('http://localhost:4001/api/auth/me', { credentials: 'include' })
+      .then(r => {
+        if (!r.ok) return null;
+        return r.json();
+      })
+      .then(u => {
+        if (u) setCurrentUser(u);
+      })
+      .catch(() => {});
   }, []);
 
   // Purchase handler (unchanged behavior)
@@ -53,6 +70,57 @@ function App() {
       console.error("Network error while purchasing:", err);
       setMessage("Unable to complete purchase — server not reachable.");
     }
+  };
+
+  // Auth helpers
+  const submitRegister = async (e) => {
+    e && e.preventDefault();
+    try {
+      const res = await fetch('http://localhost:4001/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: authEmail, password: authPassword }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMessage('Registration successful — please log in');
+        setAuthMode('login');
+      } else {
+        setMessage(data.message || 'Registration failed');
+      }
+    } catch (err) {
+      setMessage('Registration failed — server error');
+    }
+  };
+
+  const submitLogin = async (e) => {
+    e && e.preventDefault();
+    try {
+      const res = await fetch('http://localhost:4001/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email: authEmail, password: authPassword }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setCurrentUser(data.user);
+        setAuthMode(null);
+        setMessage('Logged in');
+      } else {
+        setMessage(data.message || 'Login failed');
+      }
+    } catch (err) {
+      setMessage('Login failed — server error');
+    }
+  };
+
+  const doLogout = async () => {
+    try {
+      await fetch('http://localhost:4001/api/auth/logout', { method: 'POST', credentials: 'include' });
+    } catch (e) {}
+    setCurrentUser(null);
+    setMessage('Logged out');
   };
 
   // UTILS: text-to-speech (SpeechSynthesis)
@@ -175,6 +243,39 @@ function App() {
   return (
     <main className="App">
       <h1 id="page-title">TigerTix Events</h1>
+
+      {/* Auth area */}
+      <div className="auth-area" style={{ marginBottom: 12 }}>
+        {currentUser ? (
+          <div>
+            <span>Logged in as {currentUser.email}</span>
+            <button onClick={doLogout} style={{ marginLeft: 8 }}>Logout</button>
+          </div>
+        ) : (
+          <div>
+            <button onClick={() => setAuthMode('login')}>Login</button>
+            <button onClick={() => setAuthMode('register')} style={{ marginLeft: 8 }}>Register</button>
+          </div>
+        )}
+
+        {authMode === 'login' && (
+          <form onSubmit={submitLogin} className="auth-form">
+            <input aria-label="email" placeholder="email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} />
+            <input aria-label="password" placeholder="password" type="password" value={authPassword} onChange={e => setAuthPassword(e.target.value)} />
+            <button type="submit">Sign in</button>
+            <button type="button" onClick={() => setAuthMode(null)}>Cancel</button>
+          </form>
+        )}
+
+        {authMode === 'register' && (
+          <form onSubmit={submitRegister} className="auth-form">
+            <input aria-label="email" placeholder="email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} />
+            <input aria-label="password" placeholder="password" type="password" value={authPassword} onChange={e => setAuthPassword(e.target.value)} />
+            <button type="submit">Create account</button>
+            <button type="button" onClick={() => setAuthMode(null)}>Cancel</button>
+          </form>
+        )}
+      </div>
 
       {message && (
         <div role="alert" aria-live="polite" className="status-message">
