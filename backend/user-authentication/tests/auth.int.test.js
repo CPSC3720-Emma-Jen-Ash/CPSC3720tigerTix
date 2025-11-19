@@ -30,7 +30,7 @@ test('registers a user successfully', async () => {
 });
 
 test('logs in successfully and returns JWT cookie', async () => {
-  // First register a user
+  // register a user
   await request(app)
     .post('/register')
     .send({ email: 'login@test.com', password: 'Password123' });
