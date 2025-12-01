@@ -11,10 +11,35 @@ let initDatabase = async function () {
   if (process.env.NODE_ENV === 'test') return Promise.resolve();
 
   // Dynamically import sqlite3 so tests don't require native addon
-  const sqlite3mod = await import('sqlite3');
-  const Sqlite3 = sqlite3mod.default;
-  const { verbose } = Sqlite3;
-  const dbLib = verbose();
+  let dbLib;
+  try {
+    const sqlite3mod = await import('sqlite3');
+    const Sqlite3 = sqlite3mod.default;
+    const { verbose } = Sqlite3;
+    dbLib = verbose();
+  } catch (err) {
+    console.error('Failed to import `sqlite3` from shared-db/initDatabase.js');
+    console.error('Error:', err && err.message ? err.message : err);
+    console.error('Diagnostic info:');
+    try { console.error('process.cwd():', process.cwd()); } catch (e) {}
+    try { console.error('__filename:', fileURLToPath(import.meta.url)); } catch (e) {}
+    try { console.error('__dirname:', dirname(fileURLToPath(import.meta.url))); } catch (e) {}
+    try { console.error('Looking for node_modules in these paths:'); } catch (e) {}
+    try {
+      const p = dirname(fileURLToPath(import.meta.url));
+      let cur = p;
+      for (let i = 0; i < 6; i++) {
+        console.error(' -', path.join(cur, 'node_modules'));
+        const parent = path.dirname(cur);
+        if (parent === cur) break;
+        cur = parent;
+      }
+    } catch (e) {}
+    console.error('Ensure the service you deploy runs `npm ci` in the service Root Directory so `sqlite3` is installed.');
+    console.error('Render/CI tip: set the service Root Directory to the service folder (e.g. `backend/client-service`) and Install Command `npm ci`.');
+    // In CI we want the process to fail loudly so deployment logs contain the diagnostics
+    throw err;
+  }
 
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = dirname(__filename);
