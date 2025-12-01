@@ -20,9 +20,11 @@ function App() {
   const [authPassword, setAuthPassword] = useState('');
 
   // Backend URLs
-  const BASE_URL = "http://localhost:6001/api/events"; // client service
-  // LLM booking service - adjust port if your llm service runs elsewhere
-  const LLM_URL = "http://localhost:7001/api/chat";
+  // Backend URLs (use env vars when deployed)
+  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:6001/api'; // e.g. https://api.example.com/api
+  const AUTH_BASE = process.env.REACT_APP_AUTH_URL || 'http://localhost:4001/api/auth'; // e.g. https://auth.example.com/api/auth
+  const LLM_URL = process.env.REACT_APP_LLM_URL || 'http://localhost:7001/api/chat'; // e.g. https://llm.example.com/api/chat
+  const BASE_URL = `${API_BASE}/events`;
 
   // Fetch events (unchanged) and current user
   useEffect(() => {
@@ -38,7 +40,7 @@ function App() {
       });
 
     // Try to read current user from auth service (cookie-based)
-    fetch('http://localhost:4001/api/auth/me', { credentials: 'include' })
+    fetch(`${AUTH_BASE}/me`, { credentials: 'include' })
       .then(r => {
         if (!r.ok) return null;
         return r.json();
@@ -88,7 +90,7 @@ function App() {
   const submitRegister = async (e) => {
     e && e.preventDefault();
     try {
-      const res = await fetch('http://localhost:4001/api/auth/register', {
+      const res = await fetch(`${AUTH_BASE}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: authEmail, password: authPassword }),
@@ -108,7 +110,7 @@ function App() {
   const submitLogin = async (e) => {
     e && e.preventDefault();
     try {
-      const res = await fetch('http://localhost:4001/api/auth/login', {
+      const res = await fetch(`${AUTH_BASE}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -129,7 +131,7 @@ function App() {
 
   const doLogout = async () => {
     try {
-      await fetch('http://localhost:4001/api/auth/logout', { method: 'POST', credentials: 'include' });
+      await fetch(`${AUTH_BASE}/logout`, { method: 'POST', credentials: 'include' });
     } catch (e) {}
     setCurrentUser(null);
     setMessage('Logged out');
