@@ -5,8 +5,8 @@
 
 import express from "express";
 import { listEvents, purchaseTicket } from "../controllers/clientController.js";
-// Import auth middleware from the user-authentication service so we can protect purchase route
-import { requireAuth } from "../../user-authentication/middleware/authMiddleware.js";
+// Use a local auth middleware to avoid cross-service file imports in deployment
+import { requireAuth } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
