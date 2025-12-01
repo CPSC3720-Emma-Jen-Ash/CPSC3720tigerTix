@@ -30,7 +30,7 @@ if (process.env.NODE_ENV === 'test') {
   }
 
   // Ensure shared DB schema exists before opening connection
-  const { initDatabase } = await import('../../admin-service/setup.js');
+  const { initDatabase } = await import('../../shared-db/initDatabase.js');
   await initDatabase();
 
   // Use the same LOCALAPPDATA location as admin-service so all services share the same DB
