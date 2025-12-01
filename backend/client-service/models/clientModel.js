@@ -19,9 +19,15 @@ if (process.env.NODE_ENV === 'test') {
   getAllEvents = mod.getAllEvents;
   buyTicket = mod.buyTicket;
 } else {
-  const sqlite3 = (await import('sqlite3')).default;
-  const { verbose } = sqlite3;
-  const dbLib = verbose();
+  let dbLib;
+  try {
+    const sqlite3 = (await import('sqlite3')).default;
+    const { verbose } = sqlite3;
+    dbLib = verbose();
+  } catch (err) {
+    console.error('Failed to import sqlite3 in client-service. Ensure sqlite3 is installed in backend/client-service.');
+    throw err;
+  }
 
   // Ensure shared DB schema exists before opening connection
   const { initDatabase } = await import('../../admin-service/setup.js');
