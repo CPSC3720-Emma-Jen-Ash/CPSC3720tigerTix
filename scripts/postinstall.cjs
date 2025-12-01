@@ -3,7 +3,8 @@
 // Run per-service `npm ci` only during local development (skip in CI/deploy environments)
 const { spawnSync } = require('child_process');
 
-const isCI = !!(process.env.CI || process.env.RENDER || process.env.VERCEL);
+// Treat `CI` and Vercel as CI environments, but allow Render to run per-service installs
+const isCI = !!(process.env.CI || process.env.VERCEL);
 if (isCI) {
   console.log('CI environment detected — skipping root postinstall per-service installs.');
   process.exit(0);
