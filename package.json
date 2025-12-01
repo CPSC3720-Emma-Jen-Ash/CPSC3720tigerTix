@@ -6,6 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "cd frontend && npm start",
+    "build": "cd frontend && npm run build",
+    "vercel-build": "cd frontend && npm run build",
     "start:all": "concurrently -k -n admin,client,llm,auth,frontend \"cd backend/admin-service && node server.js\" \"cd backend/client-service && node server.js\" \"cd backend/llm-booking-service && node server.js\" \"cd backend/user-authentication && npm start\" \"cd frontend && npm start\"",
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand"
   },
@@ -13,7 +15,6 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "express": "^4.21.2",
-    "react-scripts": "^0.0.0",
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {
