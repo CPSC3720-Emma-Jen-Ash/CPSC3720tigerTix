@@ -10,7 +10,7 @@
     "vercel-build": "cd frontend && npm run build",
     "start:all": "concurrently -k -n admin,client,llm,auth,frontend \"cd backend/admin-service && node server.js\" \"cd backend/client-service && node server.js\" \"cd backend/llm-booking-service && node server.js\" \"cd backend/user-authentication && npm start\" \"cd frontend && npm start\"",
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
-    "postinstall": "node ./scripts/postinstall.js"
+    "postinstall": "node ./scripts/postinstall.cjs"
   },
   
   "dependencies": {
