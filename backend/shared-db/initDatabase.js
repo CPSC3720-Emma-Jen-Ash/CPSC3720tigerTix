@@ -47,6 +47,8 @@ let initDatabase = async function () {
   const dbDir = path.resolve(localBase, 'TigerTix');
   try { if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true }); } catch (e) { /* best-effort */ }
   const dbPath = path.join(dbDir, 'database.sqlite');
+  console.log("DEBUG :: Resolved absolute DB path:", dbPath);
+console.log("DEBUG :: DB directory exists?", fs.existsSync(dbDir));
 
   return new Promise((resolve, reject) => {
     const db = new dbLib.Database(dbPath, (err) => {
