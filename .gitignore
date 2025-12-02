@@ -1,20 +1,22 @@
-# Ignore developer-local or temporary DBs,
-# but keep the shared one in version control 
+# Node dependencies
+node_modules/
+**/node_modules/
+
+# SQLite & local dev DBs
+*.sqlite
 *.db
-!backend/shared-db/database.sqlite
+*.db-journal
+
+# Allow only the one shared DB schema file
 !backend/shared-db/init.sql
 
-# Node dependencies
-
-
-# Python cache (for any node-gyp or build scripts)
-__pycache__/
-*.pyc
-
-# Test temp files
-*.skip
-*.test.skip
-
-# Logs and OS cruft
+# Logs
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS cruft
 .DS_Store
+
+# Env files
+*.env
