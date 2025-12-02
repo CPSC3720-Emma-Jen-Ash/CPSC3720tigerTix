@@ -29,10 +29,6 @@ if (process.env.NODE_ENV === 'test') {
     throw err;
   }
 
-  // Ensure shared DB schema exists before opening connection
-  const { initDatabase } = await import('../../shared-db/initDatabase.js');
-  await initDatabase();
-
   // Use the same LOCALAPPDATA location as admin-service so all services share the same DB
   const localBase = process.env.LOCALAPPDATA || path.resolve(__dirname, '../../shared-db');
   const dbDir = path.resolve(localBase, 'TigerTix');
