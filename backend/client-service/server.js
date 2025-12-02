@@ -9,7 +9,7 @@ import clientRoutes from "./routes/clientRoutes.js";
 
 // Create Express app and define PORT 6001
 const app = express();
-const PORT = 6001;
+const PORT = process.env.PORT || 6001;
 
 // cors is needed to allow cross-origin requests and to support credentialed requests
 // so that the frontend can include httpOnly auth cookies when calling protected endpoints.
