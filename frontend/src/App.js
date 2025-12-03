@@ -49,7 +49,7 @@ function App() {
         if (u) setCurrentUser(u);
       })
       .catch(() => {});
-  }, []);
+  }, [AUTH_BASE, BASE_URL]);
 
   // Purchase handler (unchanged behavior)
   const handlePurchase = async (eventID) => {
