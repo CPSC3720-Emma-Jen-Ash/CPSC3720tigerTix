@@ -10,6 +10,8 @@ import { dirname } from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+import { DB_PATH } from "../../shared-db/initDatabase.js";
+
 let getAllEvents;
 let buyTicket;
 
@@ -30,18 +32,24 @@ if (process.env.NODE_ENV === 'test') {
   }
 
   // Use the same LOCALAPPDATA location as admin-service so all services share the same DB
-  const localBase = process.env.LOCALAPPDATA || path.resolve(__dirname, '../../shared-db');
-  const dbDir = path.resolve(localBase, 'TigerTix');
-  try { const fs = await import('fs'); if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true }); } catch (e) { /* best-effort */ }
-  const dbPath = path.resolve(dbDir, 'database.sqlite');
-  console.log('connecting to sqlite db at:', dbPath);
+  //const localBase = process.env.LOCALAPPDATA || path.resolve(__dirname, '../../shared-db');
+  //const dbDir = path.resolve(localBase, 'TigerTix');
+  //try { const fs = await import('fs'); if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true }); } catch (e) { /* best-effort */ }
+  //const dbPath = path.resolve(dbDir, 'database.sqlite');
+  //console.log('connecting to sqlite db at:', dbPath);
+const dbPath = DB_PATH;
+console.log("CLIENT SERVICE USING DB:", dbPath);
 
-  const db = new dbLib.Database(dbPath, dbLib.OPEN_READWRITE, (err) => {
-    if (err) console.error('sqlite connection error:', err.message);
-    else console.log('connected to shared sqlite database.');
-  });
+const db = new dbLib.Database(
+  dbPath,
+  dbLib.OPEN_READWRITE | dbLib.OPEN_CREATE,
+  (err) => {
+    if (err) console.error("sqlite connection error:", err.message);
+    else console.log("connected to shared sqlite database.");
+  }
+);
 
-  db.configure('busyTimeout', 2000);
+db.configure("busyTimeout", 2000);
 
   getAllEvents = function (callback) {
     // Return events with a computed `num_tickets` equal to the count of available tickets
