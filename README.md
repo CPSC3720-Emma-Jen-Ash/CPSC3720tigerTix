@@ -1,69 +1,115 @@
-TigerTix — Event Ticketing System
+# TigerTix — Event Ticketing System
 
-TigerTix is a microservices-based campus ticketing system where users can register, log in, browse events, and purchase tickets. Admins can create events, and the system automatically generates tickets. A separate LLM service allows ticket booking using natural-language text or optional speech. The project includes a React frontend and several Node.js services deployed individually.
+TigerTix is a microservices-based campus ticketing system where users can register, log in, browse events, and purchase tickets.<br>
+Admins can create events, and the system automatically generates tickets.<br>
+An LLM microservice supports natural-language and optional voice-based booking.<br>
 
-Links For Live Site:
-Frontend (Vercel): add link
-Admin Service: https://tigertix-backend-admin-service.onrender.com
-Client Service: add link
-Auth Service: add link
-LLM Booking Service: add link
-GitHub Repo: https://github.com/CPSC3720-Emma-Jen-Ash/CPSC3720tigerTix
+---
 
-Demo Video
+## Links For Live Site
 
-link INSERT
-The demo shows login/registration, viewing events, confirming a booking through the LLM, voice input, and the deployed site running live.
+Frontend (Vercel): *add link* <br>
+Admin Service: https://tigertix-backend-admin-service.onrender.com <br>
+Client Service: *add link* <br>
+Auth Service: *add link* <br>
+LLM Booking Service: *add link* <br>
+GitHub Repo: https://github.com/CPSC3720-Emma-Jen-Ash/CPSC3720tigerTix <br>
 
-Project Overview
+---
 
-TigerTix simulates a simple campus event-ticketing platform. The system lets users manage accounts, view available events, and purchase tickets.   
+## Demo Video
 
-Admins can create new events through an admin microservice. All microservices share the same SQLite database so data stays consistent across the system.   
+*Insert unlisted YouTube or Google Drive link here.*<br><br>
 
-The LLM service handles natural-language booking requests and interprets them into actual ticket purchases.  
+The demo includes:<br>
+• Login and registration flow<br>
+• Browsing available events<br>
+• Completing a ticket purchase using the LLM<br>
+• Voice interaction demo<br>
+• Running deployment shown live<br>
 
+---
 
-Tech Stack
+## Project Overview
 
-Frontend: React (Vite)
-Backend: Node.js, Express
-Database: SQLite
-Authentication: JWT
-AI Integration: OpenAI API
-Hosting: Render (backend), Vercel (frontend)
-Testing: Jest + Supertest
+TigerTix provides a simple, campus-oriented ticketing system.<br>
+Users can register, view events, and purchase tickets through the client service.<br>
+Admins can create events through their own microservice, which generates the ticket inventory automatically.<br>
+All services share the same SQLite database file to ensure consistent data across the system.<br>
 
-Architecture Summary
+---
 
-The system is split into four backend services plus a frontend.
-	•	Admin Service (port 5001): creates events and tickets.
-	•	Client Service (port 6001): retrieves events and handles ticket purchases.
-	•	Auth Service (port 4001): handles user login and registration using JWT.
-	•	LLM Booking Service (port 7001): processes natural-language booking requests.
-	•	Frontend (port 3000): user interface for browsing and booking events.
+## Tech Stack
 
-All services communicate over HTTP and read/write the same SQLite database file stored in a shared directory. On Render, the DB file lives inside the persistent disk location /opt/render/project/data/TigerTix/database.sqlite.
+**Frontend:** React (Vite) <br>
+**Backend:** Node.js, Express <br>
+**Database:** SQLite <br>
+**Authentication:** JWT <br>
+**AI Integration:** OpenAI API <br>
+**Hosting:** Render (backend), Vercel (frontend) <br>
+**Testing:** Jest + Supertest <br>
 
-Installation & Local Setup
+---
 
-Clone the repo:
+## Architecture Summary
+
+TigerTix is composed of several microservices:<br><br>
+
+• **Admin Service (5001):** Creates events and generates tickets<br>
+• **Client Service (6001):** Retrieves events and handles ticket purchases<br>
+• **Auth Service (4001):** Provides registration + login via JWT<br>
+• **LLM Booking Service (7001):** Converts natural-language requests into ticket purchases<br>
+• **Frontend (3000):** React UI for the entire flow<br><br>
+
+All services use a shared SQLite file located at:<br>
+
+`/opt/render/project/data/TigerTix/database.sqlite`<br>
+
+This keeps reads/writes consistent across all deployed services.<br>
+
+---
+
+## Installation & Local Setup
+
+Clone the repo:<br>
+
 ```
 git clone https://github.com/CPSC3720-Emma-Jen-Ash/CPSC3720tigerTix
 cd CPSC3720tigerTix
 npm install
 ```
-Start all services at once:
+
+Start all backend services and the frontend:<br>
+
 ```
 npm run start:all
 ```
-Running Regression Tests
 
-From the repo root:
+This launches:<br>
+• Admin Service<br>
+• Client Service<br>
+• Auth Service<br>
+• LLM Booking Service<br>
+• React Frontend<br>
+
+---
+
+## Running Regression Tests
+
+From the repo root:<br>
+
 ```
 npm test
 ```
-Team Members
-Astraeus Newell
-Emma Kropf
-Jennifer Johnson
+
+Tests run using an in-memory test DB (no native SQLite bindings required).<br>
+
+---
+
+## Team Members
+
+Astraeus Newell<br>
+Emma Kropf<br>
+Jennifer Johnson<br>
+
+---
