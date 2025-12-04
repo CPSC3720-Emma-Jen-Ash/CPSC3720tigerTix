@@ -19,7 +19,7 @@ GitHub Repo: https://github.com/CPSC3720-Emma-Jen-Ash/CPSC3720tigerTix <br>
 
 ## Demo Video
 
-*Insert unlisted YouTube or Google Drive link here.*<br><br>
+*https://youtu.be/XVrhynay-us*<br><br>
 
 The demo includes:<br>
 • Login and registration flow<br>
