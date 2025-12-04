@@ -1,4 +1,4 @@
-# TigerTix — Event Ticketing System
+# TigerTix : Event Ticketing System
 
 TigerTix is a microservices-based campus ticketing system where users can register, log in, browse events, and purchase tickets.<br>
 Admins can create events, and the system automatically generates tickets.<br>
