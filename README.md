@@ -93,7 +93,26 @@ This launches:<br>
 • React Frontend<br>
 
 ---
+## Environment Variables
 
+The project uses a small number of environment variables:
+
+### Required
+- **JWT_SECRET**  
+  Secret key used by the authentication service to sign JSON Web Tokens.  
+  In local development, a fallback (`"dev-secret"`) is used automatically, but in production this must be set manually.
+
+### Optional
+- **NODE_ENV**  
+  Set to `"test"` when running the Jest test suite. Enables the in-memory databases and disables native SQLite usage.
+  
+- **PORT**  
+  Overrides the default port for any microservice. Render sets this automatically during deployment.
+
+### System-provided (no need to set)
+- **RENDER** — injected by Render to signal deployment environment  
+- **LOCALAPPDATA** — Windows variable used to store the SQLite DB locally
+---
 ## Running Regression Tests
 
 From the repo root:<br>
