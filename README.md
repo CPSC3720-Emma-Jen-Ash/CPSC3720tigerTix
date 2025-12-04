@@ -17,9 +17,12 @@ The demo shows login/registration, viewing events, confirming a booking through 
 
 Project Overview
 
-TigerTix simulates a simple campus event-ticketing platform. The system lets users manage accounts, view available events, and purchase tickets. 
-Admins can create new events through an admin microservice. All microservices share the same SQLite database so data stays consistent across the system. 
-The LLM service handles natural-language booking requests and interprets them into actual ticket purchases.
+TigerTix simulates a simple campus event-ticketing platform. The system lets users manage accounts, view available events, and purchase tickets.   
+
+Admins can create new events through an admin microservice. All microservices share the same SQLite database so data stays consistent across the system.   
+
+The LLM service handles natural-language booking requests and interprets them into actual ticket purchases.  
+
 
 Tech Stack
 
