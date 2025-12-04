@@ -130,5 +130,7 @@ Tests run using an in-memory test DB (no native SQLite bindings required).<br>
 Astraeus Newell<br>
 Emma Kropf<br>
 Jennifer Johnson<br>
+Instructor<br>
+Dr. Julian Brinkley
 
 ---
