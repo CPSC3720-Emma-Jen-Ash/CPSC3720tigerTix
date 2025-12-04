@@ -2,7 +2,7 @@
 
 TigerTix is a microservices-based campus ticketing system where users can register, log in, browse events, and purchase tickets.<br>
 Admins can create events, and the system automatically generates tickets.<br>
-An LLM microservice supports natural-language and optional voice-based booking.<br>
+It also contains an LLM microservice supports natural language and optional voice based booking.<br>
 
 ---
 
