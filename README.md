@@ -130,7 +130,10 @@ Tests run using an in-memory test DB (no native SQLite bindings required).<br>
 Astraeus Newell<br>
 Emma Kropf<br>
 Jennifer Johnson<br>
-Instructor<br>
+Instructor:
 Dr. Julian Brinkley
 
 ---
+## License
+This project is licensed under the MIT License.  
+See the full text here: https://opensource.org/license/mit/
