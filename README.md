@@ -9,10 +9,10 @@ An LLM microservice supports natural-language and optional voice-based booking.<
 ## Links For Live Site
 
 Frontend (Vercel): *https://tigertix-frontend.vercel.app/* <br>
-Admin Service: https://tigertix-backend-admin-service.onrender.com <br>
-Client Service: * https://tigertix-backend-client-service.onrender.com* <br>
-Auth Service: *add link* <br>
-LLM Booking Service: *add link* <br>
+Admin Service: *https://tigertix-backend-admin-service.onrender.com* <br>
+Client Service: *https://tigertix-backend-client-service.onrender.com* <br>
+Auth Service: *https://tigertix-backend-user-auth-service.onrender.com* <br>
+LLM Booking Service: *https://tigertix-backend-llm-service.onrender.com* <br>
 GitHub Repo: https://github.com/CPSC3720-Emma-Jen-Ash/CPSC3720tigerTix <br>
 
 ---
