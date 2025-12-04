@@ -44,8 +44,8 @@ All services share the same SQLite database file to ensure consistent data acros
 **Frontend:** React (Vite) <br>
 **Backend:** Node.js, Express <br>
 **Database:** SQLite <br>
-**Authentication:** JWT <br>
-**AI Integration:** OpenAI API <br>
+**Authentication:** JWT-based authentication using HttpOnly cookies (jsonwebtoken, bcrypt password hashing) <br>
+**AI Integration:** custom rule-based intent parser (no external AI API) <br>
 **Hosting:** Render (backend), Vercel (frontend) <br>
 **Testing:** Jest + Supertest <br>
 
